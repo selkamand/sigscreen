@@ -42,7 +42,7 @@ process run_sigscreen {
     mkdir -p ${params.temp_dir}
 
     # Run sigscreen R script
-    ./sigscreen.R \\
+    /app/sigscreen.R \\
         --snv=${snv_file} \\
         --cnv=${cnv_file} \\
         --sv=${sv_file} \\
