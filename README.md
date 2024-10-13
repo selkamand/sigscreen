@@ -8,6 +8,21 @@
 The current implementation leverages [SigVerse](https://github.com/selkamand/sigverse) packages and [sigminer](https://github.com/ShixiangWang/sigminer) for signature fitting.
 
 
+## Quick Start
+
+Install nextflow and run the sigscreen pipeline
+
+```
+nextflow run sigscreen.nf \
+    --snv=/path/to/your/COLO829v003T.purple.somatic.vcf.gz \
+    --cnv=/path/to/your/COLO829v003T.purple.cnv.somatic.tsv \
+    --sv=/path/to/your/COLO829v003T.purple.sv.vcf.gz \
+    --sample=COLO829v003T \
+    --ref=hg38 \
+    --n_bootstraps=25 \
+    --cores=1
+```
+
 ## Building the dockers
 
 Clone then cd into the repo and build the image with docker
