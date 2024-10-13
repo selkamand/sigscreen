@@ -10,20 +10,22 @@ The current implementation leverages [SigVerse](https://github.com/selkamand/sig
 
 ## Quick Start
 
-Install nextflow and run the sigscreen pipeline
+Ensure [nextflow](https://www.nextflow.io/docs/latest/install.html) is installed, then run sigscreen:
 
 ```
 nextflow run sigscreen.nf \
-    --snv=/path/to/your/COLO829v003T.purple.somatic.vcf.gz \
-    --cnv=/path/to/your/COLO829v003T.purple.cnv.somatic.tsv \
-    --sv=/path/to/your/COLO829v003T.purple.sv.vcf.gz \
-    --sample=COLO829v003T \
+    --snv=/path/to/your/<sample>.purple.somatic.vcf.gz \
+    --cnv=/path/to/your/<sample>.purple.cnv.somatic.tsv \
+    --sv=/path/to/your/<sample>.purple.sv.vcf.gz \
+    --sample=<sample> \
     --ref=hg38 \
     --n_bootstraps=25 \
     --cores=1
 ```
 
-## Building the dockers
+## For Developers
+
+### Building the dockers
 
 Clone then cd into the repo and build the image with docker
 ```
