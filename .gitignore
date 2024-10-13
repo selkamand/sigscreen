@@ -1,4 +1,5 @@
+work
+.nextflow*
 .Rhistory
 .Rproj.user
-.DS_Store
-signatures/COLO829v003T
+signatures/

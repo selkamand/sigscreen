@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 
+nextflow.enable.dsl=2
+
 /*
  * Define default parameters
  */
@@ -10,8 +12,8 @@ params.sample = null
 params.ref = null
 params.n_bootstraps = 25
 params.cores = 1
-params.output_dir = params.output_dir ?: 'signatures'
-params.temp_dir = params.temp_dir ?: 'temp'
+params.output_dir = 'signatures'
+params.temp_dir = 'temp'
 
 /*
  * Validate required parameters
@@ -29,9 +31,7 @@ process run_sigscreen {
     tag "${params.sample}"
 
     input:
-    path snv_file, from file(params.snv)
-    path cnv_file, from file(params.cnv)
-    path sv_file,  from file(params.sv)
+    tuple path(snv_file), path(cnv_file), path(sv_file)
 
     output:
     path "${params.output_dir}"
@@ -42,19 +42,29 @@ process run_sigscreen {
     mkdir -p ${params.temp_dir}
 
     # Run sigscreen R script
-    sigscreen:v0.0.1 ./sigscreen.R \
-        --snv=${snv_file} \
-        --cnv=${cnv_file} \
-        --sv=${sv_file} \
-        --sample=${params.sample} \
-        --ref=${params.ref} \
-        --output_dir=${params.output_dir} \
-        --n_bootstraps=${params.n_bootstraps} \
-        --temp_dir=${params.temp_dir} \
+    ./sigscreen.R \\
+        --snv=${snv_file} \\
+        --cnv=${cnv_file} \\
+        --sv=${sv_file} \\
+        --sample=${params.sample} \\
+        --ref=${params.ref} \\
+        --output_dir=${params.output_dir} \\
+        --n_bootstraps=${params.n_bootstraps} \\
+        --temp_dir=${params.temp_dir} \\
         --cores=${params.cores}
     """
 }
 
 workflow {
-    run_sigscreen()
+    /*
+     * Create a tuple channel containing the input files
+     */
+    input_ch = Channel.of([ params.snv, params.cnv, params.sv ]).map { files ->
+        files.collect { file(it) }
+    }
+
+    /*
+     * Invoke the process with the tuple channel
+     */
+    run_sigscreen(input_ch)
 }
