@@ -11,11 +11,11 @@ RUN installr -d \
     -t "make openssl-dev cmake linux-headers apache-arrow-dev openssl libarrow_dataset libarrow" arrow@14.0.2.1
 
 # Install Optparse for CLI
-RUN installr optparse
 
 # Install sigverse
 RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" selkamand/sigshared
 RUN installr -d -a "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev"  \
+    optparse \
     selkamand/sigstart
 
 RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" \
@@ -25,6 +25,13 @@ RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzi
 RUN installr -d -t "gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
     selkamand/sigminerUtils
 
+RUN installr -d -t "gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
+    BSgenome.Hsapiens.UCSC.hg38
+
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" \
+    quadprog
+
+RUN apk add libpng-dev libxml2-dev
 
 
 # Install system dependencies

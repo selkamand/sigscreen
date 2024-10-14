@@ -79,7 +79,7 @@ sigminerUtils::sig_analyse_mutations_single_sample_from_files(
   vcf_snv = path_snvs,
   segment = path_cnvs,
   vcf_sv = path_svs,
-  pass_only = TRUE,
+  include = "pass",
   exclude_sex_chromosomes = TRUE,
   allow_multisample = TRUE,
   db_sbs = db_sbs,
