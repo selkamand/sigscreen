@@ -1,2 +1,2 @@
-sample  snv copynumber  sv
-COLO829v003T  testdata/COLO829v003T.purple.somatic.vcf.gz testdata/COLO829v003T.purple.cnv.somatic.tsv  testdata/COLO829v003T.purple.sv.vcf.gz
+sample	snv	copynumber	sv
+COLO829v003T	testdata/COLO829v003T.purple.somatic.vcf.gz	testdata/COLO829v003T.purple.cnv.somatic.tsv	testdata/COLO829v003T.purple.sv.vcf.gz

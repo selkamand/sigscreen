@@ -17,7 +17,7 @@ option_list <- list(
       "  • sv          (optional)  segment file (parseable by sigstart::parse_purple_sv_vcf_to_sigminer())",
       sep = "\n"
     ),
-    metavar = "MANIFEST"
+    metavar = "MANIFEST.tsv"
   ),
   make_option(c("-r", "--ref"),
     type = "character", default = "hg19",

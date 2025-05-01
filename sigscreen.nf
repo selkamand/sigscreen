@@ -5,10 +5,7 @@ nextflow.enable.dsl=2
 /*
  * Define default parameters
  */
-params.snv = null
-params.cnv = null
-params.sv = null
-params.sample = null
+params.manifest = null
 params.ref = null
 params.n_bootstraps = 25
 params.cores = 1
@@ -18,10 +15,7 @@ params.temp_dir = 'temp'
 /*
  * Validate required parameters
  */
-if (!params.snv) error 'Please specify the --snv parameter (path to SNV VCF file)'
-if (!params.cnv) error 'Please specify the --cnv parameter (path to CNV TSV file)'
-if (!params.sv) error 'Please specify the --sv parameter (path to SV VCF file)'
-if (!params.sample) error 'Please specify the --sample parameter (sample name)'
+if (!params.manifest) error 'Please specify the --manifest parameter (path to manifest TSV file with columns sample (sample identifier),snv (path to snv VCF),cnv (path to segment file),sv (path to sv VCF))'
 if (!params.ref) error 'Please specify the --ref parameter (reference genome)'
 
 /*
@@ -31,7 +25,7 @@ process run_sigscreen {
     tag "${params.sample}"
 
     input:
-    tuple path(snv_file), path(cnv_file), path(sv_file)
+    tuple path(manifest)
 
     output:
     path "${params.output_dir}"
@@ -41,12 +35,14 @@ process run_sigscreen {
     # Create temporary directory
     mkdir -p ${params.temp_dir}
 
+    #debug
+    pwd
+
+    ls
+
     # Run sigscreen R script
     /app/sigscreen.R \\
-        --snv=${snv_file} \\
-        --cnv=${cnv_file} \\
-        --sv=${sv_file} \\
-        --sample=${params.sample} \\
+        --manifest=${manifest} \\
         --ref=${params.ref} \\
         --output_dir=${params.output_dir} \\
         --n_bootstraps=${params.n_bootstraps} \\
@@ -59,7 +55,7 @@ workflow {
     /*
      * Create a tuple channel containing the input files
      */
-    input_ch = Channel.of([ params.snv, params.cnv, params.sv ]).map { files ->
+    input_ch = Channel.of([ params.manifest ]).map { files ->
         files.collect { file(it) }
     }
 
