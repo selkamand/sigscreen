@@ -13,7 +13,7 @@ The current implementation leverages [SigVerse](https://github.com/selkamand/sig
 Ensure [nextflow](https://www.nextflow.io/docs/latest/install.html) is installed, then run sigscreen:
 
 ```
-nextflow run -with-singularity selkamand/sigscreen \
+nextflow run -profile docker selkamand/sigscreen \
     --snv=/path/to/your/<sample>.purple.somatic.vcf.gz \
     --cnv=/path/to/your/<sample>.purple.cnv.somatic.tsv \
     --sv=/path/to/your/<sample>.purple.sv.vcf.gz \
@@ -23,15 +23,18 @@ nextflow run -with-singularity selkamand/sigscreen \
     --cores=1
 ```
 
+
 For example, from this directory you could run
 ```
-nextflow run -with-singularity selkamandcci/sigscreen:v0.0.1 sigscreen.nf \
+nextflow run -profile docker -r main selkamand/sigscreen \
     --snv=testdata/COLO829v003T.purple.somatic.vcf.gz \
     --cnv=testdata/COLO829v003T.purple.cnv.somatic.tsv \
     --sv=testdata/COLO829v003T.purple.sv.vcf.gz \
     --sample=COLO829v003T \
     --ref=hg38
 ```
+
+You may need to replace `-profile docker` with `-profile singularity` if working in linux environment.
 
 ## For Developers
 
