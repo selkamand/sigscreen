@@ -28,17 +28,7 @@ Run signature analysis for every sample:
 
 ```
 nextflow run -profile docker selkamand/sigscreen \
-    --manifest=/path/to/manifest \
-    --ref=hg38 \
-    --n_bootstraps=25 \
-    --cores=1
-```
-
-
-For example, from this directory you could run
-```
-nextflow run -profile docker selkamand/sigscreen \
-    --manifest=testdata/manifest.tsv \
+    --manifest=/path/to/manifest.tsv \
     --ref=hg38 \
     --n_bootstraps=25 \
     --cores=1
@@ -61,8 +51,8 @@ From inside the sigscreen directory run:
 
 ```
 docker run --rm -v ./testdata/:/app/testdata \
-    sigscreen:v0.0.1 ./sigscreen.R \
-        --manifest=manifest
+    selkamandcci/sigscreen:v0.0.2 ./sigscreen.R \
+        --manifest=manifest.tsv
         --ref=hg38 \
         --output_dir=/app/testdata/signatures \
         --n_bootstraps=25 \
