@@ -5,19 +5,21 @@ library(optparse)
 
 # Define the list of options
 option_list <- list(
-  make_option(
-    c("-m", "--manifest"),
-    type = "character",
-    default = NULL,
-    help = paste(
-      "Path to a tab-delimited manifest file with the following columns:",
-      "  • sample      (required)  sample identifier",
-      "  • snv         (optional)  path to VCF of SNVs, MNVs & INDELs",
-      "  • copynumber  (optional)  segment file (parseable by sigstart::parse_cnv_to_sigminer())",
-      "  • sv          (optional)  segment file (parseable by sigstart::parse_purple_sv_vcf_to_sigminer())",
-      sep = "\n"
-    ),
-    metavar = "MANIFEST.tsv"
+  make_option(c("-s", "--snv"),
+    type = "character", default = NULL,
+    help = "Path to the VCF file describing SNVs and INDELs.", metavar = "vcf_snv"
+  ),
+  make_option(c("--sv"),
+    type = "character", default = NULL,
+    help = "Path to the SV VCF file produced by GRIDSS / PURPLE.", metavar = "vcf_sv"
+  ),
+  make_option(c("-c", "--cnv"),
+    type = "character", default = NULL,
+    help = "Path to the segment file produced by PURPLE (e.g., TUMOR.purple.cnv.somatic.tsv).", metavar = "segment"
+  ),
+  make_option(c("-S", "--sample"),
+    type = "character", default = NULL,
+    help = "String representing the tumor sample identifier (in your VCFs and other files).", metavar = "sampleID"
   ),
   make_option(c("-r", "--ref"),
     type = "character", default = "hg19",
@@ -76,7 +78,10 @@ parser <- OptionParser(option_list = option_list)
 arguments <- parse_args(parser)
 
 # Map arguments to variables
-manifest <- arguments$manifest
+path_snvs <- arguments$snv
+path_cnvs <- arguments$cnv
+path_svs <- arguments$sv
+sample_id <- arguments$sample
 ref_genome <- arguments$ref
 db_sbs <- arguments$db_sbs
 db_indel <- arguments$db_indel
@@ -90,9 +95,9 @@ n_bootstraps <- arguments$n_bootstraps
 temp_dir <- arguments$temp_dir
 cores <- arguments$cores
 
-if (is.null(manifest)) {
+if (is.null(path_snvs) & is.null(path_cnvs) & is.null(path_svs)) {
   optparse::print_help(parser)
-  stop("Must supply --manifest")
+  stop("Must supply one of `--snv`, `--sv`, or `--cnv`")
 }
 
 if (is.null(ref_genome)) {
@@ -101,8 +106,11 @@ if (is.null(ref_genome)) {
 }
 
 # Run the function with parsed arguments
-sigminerUtils::sig_analyse_cohort_from_files(
-  manifest = manifest,
+sigminerUtils::sig_analyse_mutations_single_sample_from_files(
+  sample_id = sample_id,
+  vcf_snv = path_snvs,
+  segment = path_cnvs,
+  vcf_sv = path_svs,
   include = "pass",
   exclude_sex_chromosomes = TRUE,
   allow_multisample = TRUE,

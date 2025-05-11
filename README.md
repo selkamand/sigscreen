@@ -12,26 +12,26 @@ The current implementation leverages [SigVerse](https://github.com/selkamand/sig
 
 Ensure [nextflow](https://www.nextflow.io/docs/latest/install.html) is installed, then run sigscreen:
 
+Create a manifest file (tsv) with 4 columns:
+
+1. **sample** (required) sample identifier
+
+2. **snv** (optional) path to vcf file with SNVs, MNVs, and INDELs.
+
+3. **copynumber** (optional) path to segment file describing copynumber changes. Must be parse-able by sigstart::parse_cnv_to_sigminer().
+
+4. **sv** (optional) path to segment file describing structural variant changes. Must be parse-able by sigstart::parse_purple_sv_vcf_to_sigminer()
+
+At least one of the mutation files must be supplied for each sample.
+
+Run signature analysis for every sample:
+
 ```
 nextflow run -profile docker selkamand/sigscreen \
-    --snv=/path/to/your/<sample>.purple.somatic.vcf.gz \
-    --cnv=/path/to/your/<sample>.purple.cnv.somatic.tsv \
-    --sv=/path/to/your/<sample>.purple.sv.vcf.gz \
-    --sample=<sample> \
+    --manifest=/path/to/manifest.tsv \
     --ref=hg38 \
     --n_bootstraps=25 \
     --cores=1
-```
-
-
-For example, from this directory you could run
-```
-nextflow run -profile docker -r main selkamand/sigscreen \
-    --snv=testdata/COLO829v003T.purple.somatic.vcf.gz \
-    --cnv=testdata/COLO829v003T.purple.cnv.somatic.tsv \
-    --sv=testdata/COLO829v003T.purple.sv.vcf.gz \
-    --sample=COLO829v003T \
-    --ref=hg38
 ```
 
 You may need to replace `-profile docker` with `-profile singularity` if working in linux environment.
@@ -51,18 +51,14 @@ From inside the sigscreen directory run:
 
 ```
 docker run --rm -v ./testdata/:/app/testdata \
-    sigscreen:v0.0.1 ./sigscreen.R \
-        --snv=/app/testdata/COLO829v003T.purple.somatic.vcf.gz \
-        --cnv=/app/testdata/COLO829v003T.purple.cnv.somatic.tsv \
-        --sv=/app/testdata/COLO829v003T.purple.sv.vcf.gz \
-        --sample=COLO829v003T \
+    selkamandcci/sigscreen:v0.0.2 ./sigscreen.R \
+        --manifest=manifest.tsv
         --ref=hg38 \
         --output_dir=/app/testdata/signatures \
         --n_bootstraps=25 \
         --temp_dir=/app/temp \
         --cores=1
 ```
-
 ```
 docker run -it -v ./testdata/:/app/testdata sigscreen:v0.0.1 sh
 ```
