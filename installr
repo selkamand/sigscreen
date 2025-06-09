@@ -1,0 +1,112 @@
+#! /bin/ash
+set -e
+
+usage() {
+    echo "Usage: $0 [ -c | -d ] [ -e ] [ -a pkgs ] [ -t pkgs ] [ -r ] [ -p ] REMOTES ..."
+    echo
+    echo "Options:"
+    echo "  -c    install C and C++ compilers and keep them"
+    echo "  -d    install C and C++ compilers, temporarily"
+    echo "  -a    install Alpine packages and keep them"
+    echo "  -t    install Alpine packages, temporarily"
+    echo "  -p    do not remove pak after the installation (ignored if -r is given)".
+    echo "  -e    use renv to restore the renv.lock file if present."
+    echo
+    echo "REMOTES may be:"
+    echo "  * package names from CRAN/Bioconductor, e.g.    ggplot2"
+    echo "  * slugs of GitHub repos, e.g.                   tidyverse/ggplot2"
+    echo "  * GitHub branch, tag or commit, e.g             tidyverse/ggplot2@v1.0.0"
+    echo "  * URLs to package .tar.gz files, e.g.           url::https://x.com/pkg.tar.gz"
+    echo "  * path to a local directory, e.g.               local::."
+    exit 2
+}
+
+error() {
+    echo $1 >&2
+    exit 2
+}
+
+unset KEEP_PAK
+
+
+while getopts 'pecda:t:?h' o
+do
+    case $o in
+        a) APKG_FIN=$OPTARG ; shift ;;
+        t) APKG_TMP=$OPTARG ; shift ;;
+        c) APKG_COMPILERS=true ;;
+        d) APKG_COMPILERS_TMP=true ;;
+        p) KEEP_PAK=true ;;
+        e) USE_RENV=true ;;
+        h|?) usage ;;
+    esac
+    shift
+done
+
+APKG_GCC="gcc musl-dev g++"
+
+if [[ -n "$APKG_COMPILERS"  ]]; then
+    APKG_FIN="$APKG_FIN $APKG_GCC"
+fi
+
+if [[ -n "$APKG_COMPILERS_TMP" ]]; then
+    APKG_TMP="$APKG_TMP $APKG_GCC"
+fi
+
+echo
+echo --------------------------------------
+[[ -n "$APKG_FIN" ]] && echo Adding "$APKG_FIN"
+[[ -n "$APKG_TMP" ]] && echo Temporarily adding "$APKG_TMP"
+apk add --no-cache $APKG_FIN $APKG_TMP
+
+echo
+echo --------------------------------------
+echo "Installing pak (if needed)"
+Rscript -e 'if (! requireNamespace("pak", quietly=TRUE)) install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/devel/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))'
+
+if [[ $# -eq 0 ]]; then
+    echo
+    echo --------------------------------------
+    echo No R packages to install
+else
+    echo
+    echo --------------------------------------
+    echo Installing "$@"
+    Rscript -e 'pak::pkg_install(commandArgs(TRUE))' "$@"
+fi
+
+echo
+echo --------------------------------------
+echo Cleaning up pak cache
+Rscript -e 'pak::cache_clean(); pak::meta_clean(TRUE)'
+rm -rf /tmp/Rtmp*
+if [[ -z "$KEEP_PAK" ]]; then
+    echo
+    echo --------------------------------------
+    echo Removing pak
+    Rscript -e 'remove.packages("pak")'
+fi
+
+
+echo --------------------------------------
+echo "Activating and Restoring renv.lock file if needed."
+if [[ "$USE_RENV" == true ]]; then
+    if [[ -f "./renv.lock" ]]; then
+    Rscript -e 'renv::consent(provided = TRUE)'
+    Rscript -e 'renv::restore()'
+    else
+    echo "renv.lock file is not present in the current directory."
+  fi
+fi
+rm -rf /tmp/Rtmp*
+
+echo
+echo --------------------------------------
+[[ -n "$APKG_TMP" ]] && echo Removing "$APKG_TMP"
+apk del $APKG_TMP
+
+echo
+echo --------------------------------------
+echo Cleaning up cache
+
+rm -rf /var/cache/apk/*

@@ -11,6 +11,7 @@ params.n_bootstraps = 25
 params.cores = 1
 params.output_dir = 'signatures'
 params.temp_dir = 'temp'
+params.small_variant_filetype = 'vcf'
 
 /*
  * Validate required parameters
@@ -44,6 +45,7 @@ process run_sigscreen {
     /app/sigscreen.R \\
         --manifest=${manifest} \\
         --ref=${params.ref} \\
+        --small_variant_filetype = ${params.small_variant_filetype} \\
         --output_dir=${params.output_dir} \\
         --n_bootstraps=${params.n_bootstraps} \\
         --temp_dir=${params.temp_dir} \\

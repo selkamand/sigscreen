@@ -1,20 +1,40 @@
-FROM rhub/r-minimal:4.4.1
+# FROM node:22.11.0-alpine3.20
+FROM alpine:3.20
+
+RUN apk update
+RUN apk upgrade
+
+RUN apk add make gcc g++
+# install fonts
+RUN apk add font-terminus font-inconsolata font-dejavu font-noto font-noto-cjk font-awesome font-noto-extra
+RUN apk add 'R=4.4.0-r0'
+
+# Copy installr accross
+COPY installr /usr/local/bin/
+
 
 # Install Arrow
 RUN mkdir -p ~/.R && echo "LDFLAGS+=-fPIC" >> ~/.R/Makevars
 
-# The most recent 15.0.1 version of the arrow package does not compile
-# on Alpine, so we install the previous version. If you had success with
-# newer versions, please let us know! Thanks!
+# Install Package System Dependencies
+
+RUN apk add libpng-dev libxml2-dev
+
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
+    BSgenome.Hsapiens.UCSC.hg38
+
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" \
+    quadprog
+
 
 RUN installr -d \
-    -t "make openssl-dev cmake linux-headers apache-arrow-dev openssl libarrow_dataset libarrow" arrow@14.0.2.1
+    -t "R-dev make openssl-dev cmake linux-headers apache-arrow-dev openssl libarrow_dataset libarrow" arrow@16.1.0
 
 # Install Optparse for CLI
 
 # Install sigverse
 RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" selkamand/sigshared
-RUN installr -d -a "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev"  \
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev"  \
     optparse \
     selkamand/sigstart
 
@@ -22,33 +42,11 @@ RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzi
     ShixiangWang/copynumber@2e31d59 \
     ShixiangWang/sigminer@9455b46 
 
-RUN installr -d -t "gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
     selkamand/sigminerUtils
 
-RUN installr -d -t "gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
-    BSgenome.Hsapiens.UCSC.hg38
 
-RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" \
-    quadprog
-
-RUN apk add libpng-dev libxml2-dev
-
-
-# Install system dependencies
-# RUN apt-get update && apt-get install -y \
-#     libcurl4-openssl-dev \
-#     libssl-dev \
-#     libxml2-dev
-
-# Install R packages from specific GitHub commits
-# RUN R -e "install.packages('remotes')"
-# RUN R -e "remotes::install_github('selkamand/sigstart', upgrade = 'never')"
-# RUN R -e "remotes::install_github('selkamand/sigminerUtils', upgrade = 'never')"
-# RUN R -e "remotes::install_github('', upgrade = 'never')"
-# RUN R -e "remotes::install_github('', upgrade = 'never')"
-# RUN R -e "install.packages('optparse')"
-
-# Copy your R scripts
+# # Copy R scripts
 COPY scripts/* /app/
 
 WORKDIR /app

@@ -1,0 +1,58 @@
+FROM rhub/r-minimal:4.4.1
+
+# Update and upgrade all packages
+RUN apk update
+RUN apk upgrade
+
+# Install Arrow
+RUN mkdir -p ~/.R && echo "LDFLAGS+=-fPIC" >> ~/.R/Makevars
+
+# The most recent 15.0.1 version of the arrow package does not compile
+# on Alpine, so we install the previous version. If you had success with
+# newer versions, please let us know! Thanks!
+
+RUN installr -d \
+    -t "make openssl-dev cmake linux-headers apache-arrow-dev openssl libarrow_dataset libarrow" arrow@14.0.2.1
+
+# Install Optparse for CLI
+
+# Install sigverse
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" selkamand/sigshared
+RUN installr -d -a "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev"  \
+    optparse \
+    selkamand/sigstart
+
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" \
+    ShixiangWang/copynumber@2e31d59 \
+    ShixiangWang/sigminer@9455b46 
+
+RUN installr -d -t "gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
+    selkamand/sigminerUtils
+
+RUN installr -d -t "gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
+    BSgenome.Hsapiens.UCSC.hg38
+
+RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev" \
+    quadprog
+
+RUN apk add libpng-dev libxml2-dev
+
+
+# Install system dependencies
+# RUN apt-get update && apt-get install -y \
+#     libcurl4-openssl-dev \
+#     libssl-dev \
+#     libxml2-dev
+
+# Install R packages from specific GitHub commits
+# RUN R -e "install.packages('remotes')"
+# RUN R -e "remotes::install_github('selkamand/sigstart', upgrade = 'never')"
+# RUN R -e "remotes::install_github('selkamand/sigminerUtils', upgrade = 'never')"
+# RUN R -e "remotes::install_github('', upgrade = 'never')"
+# RUN R -e "remotes::install_github('', upgrade = 'never')"
+# RUN R -e "install.packages('optparse')"
+
+# Copy your R scripts
+COPY scripts/* /app/
+
+WORKDIR /app

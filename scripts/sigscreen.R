@@ -23,6 +23,10 @@ option_list <- list(
     type = "character", default = "hg19",
     help = "Reference genome used for mutation calling [default: %default].", metavar = "genome"
   ),
+  make_option(c("-f", "--small_variant_filetype"),
+    type = "character", default = "vcf",
+    help = "vcf or tsv. If tsv, will automatically search header for 'Chromosome', 'Position', 'Ref' and 'Alt' columns (if any missing, will look for common aliases). Position must be 1-based. When TSV, no variant filtering will be done. See sigstart::parse_tsv_to_sigminer_maf() for details [default: %default].", metavar = "filetype"
+  ),
   make_option(c("--db_sbs"),
     type = "character", default = NULL,
     help = "Path to signature collection for SBS analysis (csv with columns `signature` `type`  `channel` `fraction`)", metavar = "sig_collection"
@@ -78,6 +82,7 @@ arguments <- parse_args(parser)
 # Map arguments to variables
 manifest <- arguments$manifest
 ref_genome <- arguments$ref
+small_variant_filetype <- arguments$small_variant_filetype
 db_sbs <- arguments$db_sbs
 db_indel <- arguments$db_indel
 db_dbs <- arguments$db_dbs
@@ -104,6 +109,7 @@ if (is.null(ref_genome)) {
 sigminerUtils::sig_analyse_cohort_from_files(
   manifest = manifest,
   include = "pass",
+  small_variant_filetype = small_variant_filetype,
   exclude_sex_chromosomes = TRUE,
   allow_multisample = TRUE,
   db_sbs = db_sbs,
