@@ -45,6 +45,8 @@ RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzi
 RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzip2-dev apache-arrow-dev" \
     selkamand/sigminerUtils
 
+RUN apk add --no-cache bash
+
 
 # # Copy R scripts
 COPY scripts/* /app/

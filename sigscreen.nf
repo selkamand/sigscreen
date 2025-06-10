@@ -23,7 +23,6 @@ if (!params.ref) error 'Please specify the --ref parameter (reference genome)'
  * Main process to run sigscreen
  */
 process run_sigscreen {
-    tag "${params.sample}"
 
     input:
     tuple path(manifest)
