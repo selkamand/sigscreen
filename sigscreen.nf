@@ -25,7 +25,7 @@ if (!params.ref) error 'Please specify the --ref parameter (reference genome)'
 process run_sigscreen {
 
     input:
-    path(manifest)
+    val manifest
 
     output:
     path "${params.output_dir}"
