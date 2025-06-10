@@ -25,7 +25,7 @@ if (!params.ref) error 'Please specify the --ref parameter (reference genome)'
 process run_sigscreen {
 
     input:
-    tuple path(manifest)
+    path(manifest)
 
     output:
     path "${params.output_dir}"
@@ -44,7 +44,7 @@ process run_sigscreen {
     /app/sigscreen.R \\
         --manifest=${manifest} \\
         --ref=${params.ref} \\
-        --small_variant_filetype = ${params.small_variant_filetype} \\
+        --small_variant_filetype=${params.small_variant_filetype} \\
         --output_dir=${params.output_dir} \\
         --n_bootstraps=${params.n_bootstraps} \\
         --temp_dir=${params.temp_dir} \\
@@ -54,14 +54,12 @@ process run_sigscreen {
 
 workflow {
     /*
-     * Create a tuple channel containing the input files
+     * Create channel with the input manifest
      */
-    input_ch = Channel.of([ params.manifest ]).map { files ->
-        files.collect { file(it) }
-    }
+    input_ch = Channel.of(file(params.manifest))
 
     /*
-     * Invoke the process with the tuple channel
+     * Invoke the process with the channel
      */
     run_sigscreen(input_ch)
 }
