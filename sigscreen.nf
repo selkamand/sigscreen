@@ -20,6 +20,25 @@ if (!params.manifest) error 'Please specify the --manifest parameter (path to ma
 if (!params.ref) error 'Please specify the --ref parameter (reference genome)'
 
 /*
+ * Force nextflow to look at each file in manifest so they are automatically symlinked 
+  and R script can see them
+ */
+workflow {
+  Channel
+    .fromPath(params.manifest)
+    .map { manifestFile ->
+      def rows = manifestFile.readLines().drop(1).collect { it.split('\t') }
+      rows.collect { sample, snvPath, cnvPath, svPath ->
+        tuple(manifestFile, file(snvPath), file(cnvPath), file(svPath))
+      }
+    }
+    .flatten()
+    .set { samples_ch }
+
+  run_sigscreen(samples_ch)
+}
+
+/*
  * Main process to run sigscreen
  */
 process run_sigscreen {

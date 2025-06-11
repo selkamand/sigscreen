@@ -47,6 +47,7 @@ RUN installr -d -t "R-dev gfortran fontconfig-dev cmake curl-dev libxml2-dev bzi
 
 RUN apk add --no-cache bash
 
+RUN apk add libxml2-dev
 
 # # Copy R scripts
 COPY scripts/* /app/
