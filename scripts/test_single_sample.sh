@@ -13,7 +13,7 @@ N_BOOTSTRAPS=50
 CORES=1
 
 # Run the sigscreen.R script with the specified parameters
-./sigscreen_single_sample.R \
+./sigscreen.R \
     --snv="$SNV_VCF" \
     --cnv="$CNV_SEGMENT" \
     --sv="$SV_VCF" \

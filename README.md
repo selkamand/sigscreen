@@ -51,7 +51,7 @@ From inside the sigscreen directory run:
 
 ```
 docker run --rm -v ./testdata/:/app/testdata \
-    selkamandcci/sigscreen:v0.0.2 ./sigscreen.R \
+    selkamandcci/sigscreen:v0.0.3 ./sigscreen.R \
         --manifest=manifest.tsv
         --ref=hg38 \
         --output_dir=/app/testdata/signatures \
@@ -60,5 +60,5 @@ docker run --rm -v ./testdata/:/app/testdata \
         --cores=1
 ```
 ```
-docker run -it -v ./testdata/:/app/testdata sigscreen:v0.0.1 sh
+docker run -it -v ./testdata/:/app/testdata selkamandcci/sigscreen:v0.0.3 sh
 ```

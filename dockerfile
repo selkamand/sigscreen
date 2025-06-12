@@ -49,7 +49,10 @@ RUN apk add --no-cache bash
 
 RUN apk add libxml2-dev
 
-# # Copy R scripts
+# Copy R scripts
 COPY scripts/* /app/
+
+# Add scripts path
+ENV PATH="$PATH:/app"
 
 WORKDIR /app

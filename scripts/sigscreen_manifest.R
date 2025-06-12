@@ -5,25 +5,27 @@ library(optparse)
 
 # Define the list of options
 option_list <- list(
-  make_option(c("-s", "--snv"),
-    type = "character", default = NULL,
-    help = "Path to the VCF file describing SNVs and INDELs.", metavar = "vcf_snv"
-  ),
-  make_option(c("--sv"),
-    type = "character", default = NULL,
-    help = "Path to the SV VCF file produced by GRIDSS / PURPLE.", metavar = "vcf_sv"
-  ),
-  make_option(c("-c", "--cnv"),
-    type = "character", default = NULL,
-    help = "Path to the segment file produced by PURPLE (e.g., TUMOR.purple.cnv.somatic.tsv).", metavar = "segment"
-  ),
-  make_option(c("-S", "--sample"),
-    type = "character", default = NULL,
-    help = "String representing the tumor sample identifier (in your VCFs and other files).", metavar = "sampleID"
+  make_option(
+    c("-m", "--manifest"),
+    type = "character",
+    default = NULL,
+    help = paste(
+      "Path to a tab-delimited manifest file with the following columns:",
+      "  • sample      (required)  sample identifier",
+      "  • snv         (optional)  path to VCF of SNVs, MNVs & INDELs",
+      "  • copynumber  (optional)  segment file (parseable by sigstart::parse_cnv_to_sigminer())",
+      "  • sv          (optional)  segment file (parseable by sigstart::parse_purple_sv_vcf_to_sigminer())",
+      sep = "\n"
+    ),
+    metavar = "MANIFEST.tsv"
   ),
   make_option(c("-r", "--ref"),
     type = "character", default = "hg19",
     help = "Reference genome used for mutation calling [default: %default].", metavar = "genome"
+  ),
+  make_option(c("-f", "--small_variant_filetype"),
+    type = "character", default = "vcf",
+    help = "vcf or tsv. If tsv, will automatically search header for 'Chromosome', 'Position', 'Ref' and 'Alt' columns (if any missing, will look for common aliases). Position must be 1-based. When TSV, no variant filtering will be done. See sigstart::parse_tsv_to_sigminer_maf() for details [default: %default].", metavar = "filetype"
   ),
   make_option(c("--db_sbs"),
     type = "character", default = NULL,
@@ -78,11 +80,9 @@ parser <- OptionParser(option_list = option_list)
 arguments <- parse_args(parser)
 
 # Map arguments to variables
-path_snvs <- arguments$snv
-path_cnvs <- arguments$cnv
-path_svs <- arguments$sv
-sample_id <- arguments$sample
+manifest <- arguments$manifest
 ref_genome <- arguments$ref
+small_variant_filetype <- arguments$small_variant_filetype
 db_sbs <- arguments$db_sbs
 db_indel <- arguments$db_indel
 db_dbs <- arguments$db_dbs
@@ -95,9 +95,9 @@ n_bootstraps <- arguments$n_bootstraps
 temp_dir <- arguments$temp_dir
 cores <- arguments$cores
 
-if (is.null(path_snvs) & is.null(path_cnvs) & is.null(path_svs)) {
+if (is.null(manifest)) {
   optparse::print_help(parser)
-  stop("Must supply one of `--snv`, `--sv`, or `--cnv`")
+  stop("Must supply --manifest")
 }
 
 if (is.null(ref_genome)) {
@@ -106,12 +106,10 @@ if (is.null(ref_genome)) {
 }
 
 # Run the function with parsed arguments
-sigminerUtils::sig_analyse_mutations_single_sample_from_files(
-  sample_id = sample_id,
-  vcf_snv = path_snvs,
-  segment = path_cnvs,
-  vcf_sv = path_svs,
+sigminerUtils::sig_analyse_cohort_from_files(
+  manifest = manifest,
   include = "pass",
+  small_variant_filetype = small_variant_filetype,
   exclude_sex_chromosomes = TRUE,
   allow_multisample = TRUE,
   db_sbs = db_sbs,

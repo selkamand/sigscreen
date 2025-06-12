@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-nextflow.enable.dsl=2
+nextflow.enable.dsl = 2
 
 /*
  * Define default parameters
@@ -13,44 +13,57 @@ params.output_dir = 'signatures'
 params.temp_dir = 'temp'
 params.small_variant_filetype = 'vcf'
 
-/*
- * Validate required parameters
- */
-if (!params.manifest) error 'Please specify the --manifest parameter (path to manifest TSV file with columns sample (sample identifier),snv (path to snv VCF),cnv (path to segment file),sv (path to sv VCF))'
-if (!params.ref) error 'Please specify the --ref parameter (reference genome)'
-
-/*
- * Force nextflow to look at each file in manifest so they are automatically symlinked 
-  and R script can see them
- */
 workflow {
-  Channel
+  /*
+  * Validate required parameters
+  */
+  if (!params.manifest) {
+    error('Please specify the --manifest parameter (path to manifest TSV file with columns sample (sample identifier),snv (path to snv VCF),cnv (path to segment file),sv (path to sv VCF))')
+  }
+  if (!params.ref) {
+    error('Please specify the --ref parameter (reference genome)')
+  }
+
+  // 2) Coerce manifest into a path object and check it really exists
+  def manifestFile = file(params.manifest)
+  if (!manifestFile.exists()) {
+    error("Manifest file not found: ${manifestFile}")
+  }
+  println("✅ Using manifest at: ${manifestFile}")
+
+  /*
+   *  Force nextflow to look at each file in manifest so they are automatically copied / symlinked into the working directory
+   *  and R script can see them
+   */
+  def samples_ch = Channel
     .fromPath(params.manifest)
-    .map { manifestFile ->
-      def rows = manifestFile.readLines().drop(1).collect { it.split('\t') }
-      rows.collect { sample, snvPath, cnvPath, svPath ->
-        tuple(manifestFile, file(snvPath), file(cnvPath), file(svPath))
-      }
+    .splitCsv(header: true, sep: '\t')
+    .view { row -> println("DEBUG: got row => ${row}") }
+    .map { row ->
+      tuple(
+        row.sample,
+        file(row.snv),
+        file(row.copynumber),
+        file(row.sv),
+      )
     }
-    .flatten()
-    .set { samples_ch }
 
   run_sigscreen(samples_ch)
 }
+
 
 /*
  * Main process to run sigscreen
  */
 process run_sigscreen {
+  input:
+  tuple val(sample), file(snv), file(cnv), file(sv)
 
-    input:
-    path(manifest)
+  output:
+  path "${params.output_dir}"
 
-    output:
-    path "${params.output_dir}"
-
-    script:
-    """
+  script:
+  """
     # Create temporary directory
     mkdir -p ${params.temp_dir}
 
@@ -59,26 +72,17 @@ process run_sigscreen {
 
     ls
 
-    # Run sigscreen R script
+    # Run sigscreen Single Sample R 
     /app/sigscreen.R \\
-        --manifest=${manifest} \\
-        --ref=${params.ref} \\
-        --small_variant_filetype=${params.small_variant_filetype} \\
-        --output_dir=${params.output_dir} \\
-        --n_bootstraps=${params.n_bootstraps} \\
-        --temp_dir=${params.temp_dir} \\
-        --cores=${params.cores}
+    --snv ${snv} \\
+    --cnv ${cnv} \\
+    --sv ${sv} \\
+    --ref=${params.ref} \\
+    --small_variant_filetype=${params.small_variant_filetype} \\
+    --output_dir=${params.output_dir} \\
+    --n_bootstraps=${params.n_bootstraps} \\
+    --sample=${sample}  \\
+    --temp_dir=${params.temp_dir} \\
+    --cores=${params.cores}
     """
-}
-
-workflow {
-    /*
-     * Create channel with the input manifest
-     */
-    input_ch = Channel.of(file(params.manifest))
-
-    /*
-     * Invoke the process with the channel
-     */
-    run_sigscreen(input_ch)
 }

@@ -1,0 +1,2 @@
+sample  snv copynumber  sv
+tumor  testdata/purple.snv.hg38.vcf testdata/purple.cnv.hg38.tsv testdata/purple.sv.hg38.vcf

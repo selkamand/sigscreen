@@ -10,7 +10,7 @@ N_BOOTSTRAPS=50
 CORES=1
 
 # Run the sigscreen.R script with the specified parameters
-./sigscreen_single_sample.R \
+./sigscreen_manifest.R \
     --manifest="$MANIFEST" \
     --ref="$REF_GENOME" \
     --output_dir="$OUTPUT_DIR" \
